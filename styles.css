@@ -57,3 +57,83 @@ input:focus,select:focus,textarea:focus{border-color:#4b95ff}.two-col{display:gr
 @media(max-width:760px){.hero{grid-template-columns:1fr}.admin-dashboard{grid-template-columns:1fr}.admin-nav{position:static;display:flex;overflow:auto}
 .admin-nav-btn{min-width:max-content;width:auto}.metric-grid{grid-template-columns:1fr}.two-col{grid-template-columns:1fr}.connection{display:none}.shell{width:min(100% - 14px,1180px)}
 .match-editor{grid-template-columns:1fr 55px 18px 55px 1fr}.match-editor button{grid-column:1/-1}.hero{padding:20px}}
+
+
+/* ===== PREMIER COMPACT TABLE ===== */
+.table-wrap{
+  overflow:visible!important;
+  margin-top:12px;
+}
+.standings{
+  width:100%;
+  border-collapse:separate!important;
+  border-spacing:0 5px!important;
+  table-layout:fixed!important;
+  min-width:0!important;
+}
+.standings thead th{
+  background:transparent!important;
+  color:#8193aa!important;
+  font-size:8px!important;
+  padding:4px 2px!important;
+  letter-spacing:.02em!important;
+  border:0!important;
+}
+.standings tbody td{
+  background:#0b1829!important;
+  padding:10px 3px!important;
+  text-align:center!important;
+  font-size:10px!important;
+  border-top:1px solid rgba(255,255,255,.05)!important;
+  border-bottom:1px solid rgba(255,255,255,.05)!important;
+}
+.standings th:nth-child(1), .standings td:nth-child(1){width:7%!important}
+.standings th:nth-child(2), .standings td:nth-child(2){
+  width:31%!important;
+  text-align:left!important;
+}
+.standings td:nth-child(2){
+  font-weight:900!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+}
+.standings th:nth-child(n+3), .standings td:nth-child(n+3){
+  width:7.75%!important;
+}
+.standings tbody td:first-child{
+  border-radius:9px 0 0 9px!important;
+  position:relative!important;
+}
+.standings tbody td:last-child{
+  border-radius:0 9px 9px 0!important;
+  background:#102845!important;
+  font-weight:1000!important;
+  color:#fff!important;
+}
+.standings tbody tr.qualify td:first-child:before{
+  content:""!important;
+  position:absolute!important;
+  left:0!important;
+  top:3px!important;
+  bottom:3px!important;
+  width:3px!important;
+  border-radius:0 3px 3px 0!important;
+  background:#2f7cff!important;
+  box-shadow:none!important;
+}
+.standings tbody tr.qualify td{
+  background:#0b1829!important;
+}
+.standings tbody tr.qualify td:last-child{
+  background:#102845!important;
+}
+@media(min-width:600px){
+  .standings thead th{font-size:9px!important}
+  .standings tbody td{font-size:12px!important;padding:12px 5px!important}
+}
+@media(max-width:420px){
+  .score-panel{padding:12px!important}
+  .standings thead th{font-size:7px!important}
+  .standings tbody td{font-size:9px!important;padding:9px 2px!important}
+}
