@@ -157,3 +157,10 @@ input:focus,select:focus,textarea:focus{border-color:#4b95ff}.two-col{display:gr
     padding:8px 1px !important;
   }
 }
+/* PLAYER NAME BIG + BOLD */
+@media (max-width:760px){
+  .standings tbody td:nth-child(2){
+    font-size:11px !important;
+    font-weight:900 !important;
+  }
+}
