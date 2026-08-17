@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#07111f">
   <meta name="description" content="BLC E-Football Mobile Tournament Center">
   <title>BLC E-Football Mobile</title>
-  <link rel="stylesheet" href="./styles.css?v=20260817-premier2">
+  <link rel="stylesheet" href="./styles.css?v=20260817-live-motion">
 </head>
 <body>
   <header class="topbar">
@@ -29,6 +29,15 @@
           <p>ตารางคะแนนออนไลน์สำหรับการแข่งขัน E-Football Mobile อัปเดตผลและอันดับแบบสด</p>
         </div>
         <div id="announcementBox" class="announcement hidden"></div>
+      </div>
+
+      <div id="publicLiveMatchCard" class="blc-live-card panel hidden">
+        <div class="blc-live-head"><span class="blc-live-label"><i></i> LIVE MATCH</span><span id="publicLiveGroup" class="mini-pill">GROUP A</span></div>
+        <div class="blc-live-body">
+          <div class="blc-live-player"><div id="publicHomeAvatar" class="blc-live-avatar"><span>HOME</span></div><b id="publicHomeName">HOME PLAYER</b><small id="publicHomeClub"></small></div>
+          <div class="blc-live-score"><span id="publicHomeScore">0</span><em>:</em><span id="publicAwayScore">0</span></div>
+          <div class="blc-live-player"><div id="publicAwayAvatar" class="blc-live-avatar"><span>AWAY</span></div><b id="publicAwayName">AWAY PLAYER</b><small id="publicAwayClub"></small></div>
+        </div>
       </div>
 
       <div class="section-header">
@@ -82,6 +91,7 @@
       <div class="admin-dashboard">
         <aside class="admin-nav panel">
           <button class="admin-nav-btn active" data-admin-tab="overview">ภาพรวม</button>
+          <button class="admin-nav-btn" data-admin-tab="live">🔴 LIVE MATCH</button>
           <button class="admin-nav-btn" data-admin-tab="create">＋ เพิ่มรายการ</button>
           <button class="admin-nav-btn" data-admin-tab="announcement">📢 ประกาศ</button>
           <button class="admin-nav-btn" data-admin-tab="manage">⚙️ จัดการรายการ</button>
@@ -104,6 +114,19 @@
                 <div><span class="check">✓</span> ตารางคะแนนคำนวณจากผลแข่งอัตโนมัติ</div>
                 <div><span class="check">✓</span> บันทึกผลและเวลาอัปเดตแบบ atomic update</div>
               </div>
+            </div>
+          </section>
+
+          <section id="admin-live" class="admin-tab hidden">
+            <div class="panel form-panel">
+              <span class="kicker">LIVE MATCH</span><h3>ตั้งค่าคู่ที่กำลังแข่งขัน</h3>
+              <div class="two-col"><label>รายการแข่งขัน<select id="liveTournamentSelect"></select></label><label>GROUP<select id="liveGroupSelect"></select></label></div>
+              <div class="blc-live-admin-grid">
+                <div class="blc-live-editor"><b>HOME</b><label>นักแข่ง<select id="liveHomePlayer"></select></label><label>CLUB<input id="liveHomeClub" maxlength="80" placeholder="ชื่อคลับ"></label><label>รูปนักแข่ง<input id="liveHomeImage" type="file" accept="image/*"></label><div id="liveHomePreview" class="blc-admin-avatar"><span>HOME</span></div><label>สกอร์<input id="liveHomeScore" type="number" min="0" max="99" value="0"></label><button id="removeHomeImageBtn" class="btn btn-ghost" type="button">ลบรูป</button></div>
+                <div class="blc-live-editor"><b>AWAY</b><label>นักแข่ง<select id="liveAwayPlayer"></select></label><label>CLUB<input id="liveAwayClub" maxlength="80" placeholder="ชื่อคลับ"></label><label>รูปนักแข่ง<input id="liveAwayImage" type="file" accept="image/*"></label><div id="liveAwayPreview" class="blc-admin-avatar"><span>AWAY</span></div><label>สกอร์<input id="liveAwayScore" type="number" min="0" max="99" value="0"></label><button id="removeAwayImageBtn" class="btn btn-ghost" type="button">ลบรูป</button></div>
+              </div>
+              <div class="button-row" style="margin-top:14px"><button id="saveLiveMatchBtn" class="btn btn-primary" type="button">● เปิด / อัปเดต LIVE</button><button id="stopLiveMatchBtn" class="btn btn-danger" type="button">หยุด LIVE</button></div>
+              <div class="editor-help">รูปจะถูกย่อก่อนบันทึก เพื่อช่วยให้เว็บโหลดเร็วบนมือถือ</div>
             </div>
           </section>
 
@@ -190,6 +213,6 @@
   </div>
 
   <div id="toast" class="toast hidden"></div>
-  <script type="module" src="./app.js?v=20260817-rules3"></script>
+  <script type="module" src="./app.js?v=20260817-live-motion"></script>
 </body>
 </html>
