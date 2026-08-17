@@ -104,11 +104,14 @@ function renderTournament(){
   const table=$("standingsBody"); table.innerHTML="";
   compute(group).forEach((x,idx)=>{const tr=el("tr",idx<2?"qualify":"");tr.innerHTML=`<td>${idx+1}</td><td>${safe(x.name)}</td><td>${x.p}</td><td>${x.w}</td><td>${x.d}</td><td>${x.l}</td><td>${x.gf}</td><td>${x.ga}</td><td>${x.gd>0?"+":""}${x.gd}</td><td><b>${x.pts}</b></td>`;table.appendChild(tr)});
   $("qualificationLegend").textContent=t.size===24?"อันดับ 1–2 ของแต่ละกลุ่มเข้ารอบ • อันดับ 3 ที่ดีที่สุด 4 ทีมมีสิทธิ์เข้ารอบ 16 ทีม":"อันดับสูงสุดของแต่ละกลุ่มตามกติกาของรายการ";
-  const list=$("matchList"); list.innerHTML="";
-  for(const m of makeMatches(group.players)){
-    const r=(group.matches||{})[m.key]||{}; const row=el("div","match-row");
-    row.innerHTML=`<span class="home">${safe(group.players[m.i]||`ผู้เล่น ${m.i+1}`)}</span><b>${r.home ?? "-"}</b><span>:</span><b>${r.away ?? "-"}</b><span>${safe(group.players[m.j]||`ผู้เล่น ${m.j+1}`)}</span>`;
-    list.appendChild(row);
+  // ซ่อนผลการแข่งขันจากหน้าสาธารณะ
+  // หลังบ้าน ADMIN ยังสามารถกรอกและอัปเดตสกอร์ได้ตามเดิม
+  const list=$("matchList");
+  if(list){
+    list.innerHTML="";
+    list.classList.add("hidden");
+    const matchHeader=list.previousElementSibling;
+    if(matchHeader) matchHeader.classList.add("hidden");
   }
 }
 function renderAdminTournamentList(){
