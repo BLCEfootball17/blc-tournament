@@ -7,6 +7,18 @@
   <meta name="description" content="BLC E-Football Mobile Tournament Center">
   <title>BLC E-Football Mobile</title>
   <link rel="stylesheet" href="./styles.css?v=20260817-live-motion">
+<style id="blc-mobile-standings-hotfix">
+@media(max-width:760px){
+.score-panel{padding:14px!important;overflow:hidden!important}
+.table-wrap{width:100%!important;overflow:visible!important;margin-top:12px!important}
+table.standings{width:100%!important;min-width:0!important;max-width:100%!important;table-layout:fixed!important;border-collapse:separate!important;border-spacing:0 5px!important}
+.standings th,.standings td{padding:9px 2px!important;font-size:9px!important;text-align:center!important;overflow:hidden!important}
+.standings th.rank-col,.standings td:nth-child(1){width:7%!important}
+.standings th.player-col,.standings td:nth-child(2){width:31%!important;text-align:left!important;white-space:nowrap!important;text-overflow:ellipsis!important}
+.standings th:nth-child(n+3),.standings td:nth-child(n+3){width:7.75%!important}
+}
+@media(max-width:390px){.score-panel{padding:11px!important}.standings th,.standings td{font-size:8px!important;padding:8px 1px!important}}
+</style>
 </head>
 <body>
   <header class="topbar">
