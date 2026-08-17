@@ -16,6 +16,9 @@ const safe = v => String(v ?? "");
 const statusText = {registration:"กำลังรับสมัคร",active:"กำลังแข่งขัน",finished:"จบการแข่งขัน"};
 let tournaments = {};
 let announcement = "";
+let liveMatch = null;
+let pendingHomeImage;
+let pendingAwayImage;
 let currentTournamentId = null;
 let currentGroup = "A";
 let editingTournamentId = null;
@@ -26,8 +29,10 @@ function toast(msg){
   clearTimeout(window.__toastTimer); window.__toastTimer=setTimeout(()=>$("toast").classList.add("hidden"),2200);
 }
 function show(view){
-  ["homeView","tournamentView","adminView"].forEach(id=>$(id).classList.add("hidden"));
-  $(view).classList.remove("hidden"); window.scrollTo({top:0,behavior:"smooth"});
+  const target=$(view);
+  ["homeView","tournamentView","adminView"].forEach(id=>{if(id!==view)$(id).classList.add("hidden")});
+  target.classList.remove("hidden","blc-enter"); requestAnimationFrame(()=>target.classList.add("blc-enter"));
+  window.scrollTo({top:0,behavior:"auto"});
 }
 function setConnection(ok){
   const b=$("connectionBadge"); b.classList.toggle("online",ok); b.classList.toggle("offline",!ok);
@@ -71,6 +76,15 @@ function compute(group){
   players.forEach(x=>x.gd=x.gf-x.ga);
   return players.sort((a,b)=>b.pts-a.pts||b.gd-a.gd||b.gf-a.gf||a.name.localeCompare(b.name,"th"));
 }
+
+function blcAvatar(id,image,name){const b=$(id);if(!b)return;b.innerHTML="";if(image){const i=new Image();i.src=image;i.alt=safe(name);b.appendChild(i)}else{const s=document.createElement("span");s.textContent=(safe(name).trim().split(/\s+/).map(x=>x[0]||"").join("").slice(0,3)||"BLC").toUpperCase();b.appendChild(s)}}
+function renderLiveMatch(){const c=$("publicLiveMatchCard");if(!c)return;const l=liveMatch||{},on=l.enabled===true&&(l.homeName||l.awayName);c.classList.toggle("hidden",!on);if(!on)return;$("publicLiveGroup").textContent=`GROUP ${safe(l.group||"A")}`;$("publicHomeName").textContent=safe(l.homeName||"HOME PLAYER");$("publicAwayName").textContent=safe(l.awayName||"AWAY PLAYER");$("publicHomeClub").textContent=l.homeClub?`CLUB (${safe(l.homeClub)})`:"";$("publicAwayClub").textContent=l.awayClub?`CLUB (${safe(l.awayClub)})`:"";$("publicHomeScore").textContent=Number(l.homeScore||0);$("publicAwayScore").textContent=Number(l.awayScore||0);blcAvatar("publicHomeAvatar",l.homeImage,l.homeName);blcAvatar("publicAwayAvatar",l.awayImage,l.awayName);c.classList.remove("blc-live-update");requestAnimationFrame(()=>c.classList.add("blc-live-update"))}
+function populateLiveTournamentOptions(){const s=$("liveTournamentSelect");if(!s)return;const keep=s.value||liveMatch?.tournamentId||"";s.innerHTML="";Object.entries(tournaments).forEach(([id,raw])=>{const t=normalizeTournament(structuredClone(raw)),o=document.createElement("option");o.value=id;o.textContent=t.name||`${t.size} TEAM`;s.appendChild(o)});if([...s.options].some(o=>o.value===keep))s.value=keep;populateLiveGroups()}
+function populateLiveGroups(){const tid=$("liveTournamentSelect")?.value,s=$("liveGroupSelect");if(!s)return;const t=tournaments[tid]?normalizeTournament(structuredClone(tournaments[tid])):null,keep=s.value||liveMatch?.group||"A";s.innerHTML="";Object.keys(t?.groups||{}).forEach(g=>{const o=document.createElement("option");o.value=g;o.textContent=`GROUP ${g}`;s.appendChild(o)});if([...s.options].some(o=>o.value===keep))s.value=keep;populateLivePlayers()}
+function populateLivePlayers(){const tid=$("liveTournamentSelect")?.value,g=$("liveGroupSelect")?.value,t=tournaments[tid]?normalizeTournament(structuredClone(tournaments[tid])):null,p=t?.groups?.[g]?.players||[];[["liveHomePlayer",liveMatch?.homeName],["liveAwayPlayer",liveMatch?.awayName]].forEach(([id,w],i)=>{const s=$(id),keep=s.value||w||"";s.innerHTML="";p.forEach((n,j)=>{const o=document.createElement("option");o.value=n||`ผู้เล่น ${j+1}`;o.textContent=n||`ผู้เล่น ${j+1}`;s.appendChild(o)});if([...s.options].some(o=>o.value===keep))s.value=keep;else if(s.options.length)s.selectedIndex=Math.min(i,s.options.length-1)})}
+function fillLiveAdmin(){if(!$("liveHomeClub"))return;const l=liveMatch||{};if(l.tournamentId)$("liveTournamentSelect").value=l.tournamentId;populateLiveGroups();if(l.group&&[...$("liveGroupSelect").options].some(o=>o.value===l.group))$("liveGroupSelect").value=l.group;populateLivePlayers();if(l.homeName&&[...$("liveHomePlayer").options].some(o=>o.value===l.homeName))$("liveHomePlayer").value=l.homeName;if(l.awayName&&[...$("liveAwayPlayer").options].some(o=>o.value===l.awayName))$("liveAwayPlayer").value=l.awayName;$("liveHomeClub").value=l.homeClub||"";$("liveAwayClub").value=l.awayClub||"";$("liveHomeScore").value=Number(l.homeScore||0);$("liveAwayScore").value=Number(l.awayScore||0);blcAvatar("liveHomePreview",l.homeImage,l.homeName);blcAvatar("liveAwayPreview",l.awayImage,l.awayName)}
+async function compressLiveImage(file){if(!file||!file.type.startsWith("image/"))throw 0;const u=await new Promise((r,j)=>{const f=new FileReader();f.onload=()=>r(f.result);f.onerror=j;f.readAsDataURL(file)}),im=await new Promise((r,j)=>{const i=new Image();i.onload=()=>r(i);i.onerror=j;i.src=u}),sc=Math.min(1,360/Math.max(im.width,im.height)),w=Math.max(1,Math.round(im.width*sc)),h=Math.max(1,Math.round(im.height*sc)),c=document.createElement("canvas");c.width=w;c.height=h;c.getContext("2d").drawImage(im,0,0,w,h);return c.toDataURL("image/jpeg",.72)}
+
 function renderHome(){
   $("announcementBox").textContent=announcement||"";
   $("announcementBox").classList.toggle("hidden",!announcement);
@@ -89,6 +103,8 @@ function renderHome(){
   $("metricActive").textContent=entries.filter(([,t])=>t.status==="active").length;
   $("metricTeams").textContent=entries.reduce((s,[,t])=>s+Number(t.size||0),0);
   renderAdminTournamentList();
+  renderLiveMatch();
+  populateLiveTournamentOptions();
 }
 function openTournament(id){
   currentTournamentId=id; const t=normalizeTournament(structuredClone(tournaments[id])); if(!t)return;
@@ -99,7 +115,7 @@ function renderTournament(){
   $("tourName").textContent=t.name; $("tourMeta").textContent=`${t.size} TEAM • ${sizeSpec(t.size).label}`;
   $("tourStatus").textContent=statusText[t.status]||t.status; $("tourStatus").className=`status-pill status-${t.status}`;
   const tabs=$("groupTabs"); tabs.innerHTML="";
-  Object.keys(t.groups).forEach(g=>{const b=el("button","group-tab"+(g===currentGroup?" active":""),`GROUP ${g}`);b.onclick=()=>{currentGroup=g;renderTournament()};tabs.appendChild(b)});
+  Object.keys(t.groups).forEach(g=>{const b=el("button","group-tab"+(g===currentGroup?" active":""),`GROUP ${g}`);b.onclick=()=>{if(currentGroup===g)return;currentGroup=g;renderTournament();const p=document.querySelector(".score-panel");if(p){p.classList.remove("blc-score-swap");requestAnimationFrame(()=>p.classList.add("blc-score-swap"))}};tabs.appendChild(b)});
   const group=t.groups[currentGroup]; $("groupLabel").textContent=`GROUP ${currentGroup}`;$("playerCountBadge").textContent=`${group.players.length} PLAYERS`;
   const table=$("standingsBody"); table.innerHTML="";
   compute(group).forEach((x,idx)=>{const tr=el("tr",idx<2?"qualify":"");tr.innerHTML=`<td>${idx+1}</td><td>${safe(x.name)}</td><td>${x.p}</td><td>${x.w}</td><td>${x.d}</td><td>${x.l}</td><td>${x.gf}</td><td>${x.ga}</td><td>${x.gd>0?"+":""}${x.gd}</td><td><b>${x.pts}</b></td>`;table.appendChild(tr)});
@@ -162,6 +178,7 @@ onValue(ref(db,"tournaments"),snap=>{
   $("lastSyncText").textContent="อัปเดตล่าสุด "+new Date().toLocaleTimeString("th-TH",{hour:"2-digit",minute:"2-digit"});
 });
 onValue(ref(db,"public/announcement"),snap=>{announcement=snap.val()||"";renderHome();if($("announcementInput"))$("announcementInput").value=announcement});
+onValue(ref(db,"public/liveMatch"),snap=>{liveMatch=snap.val()||null;pendingHomeImage=undefined;pendingAwayImage=undefined;renderLiveMatch();fillLiveAdmin()});
 
 onAuthStateChanged(auth,user=>{
   $("adminEmailBadge").textContent=user?.email||"";
@@ -175,6 +192,14 @@ $("loginForm").onsubmit=async e=>{e.preventDefault();$("loginError").textContent
 $("logoutBtn").onclick=async()=>{await signOut(auth);show("homeView");toast("ออกจากระบบแล้ว")};
 document.querySelectorAll(".admin-nav-btn[data-admin-tab]").forEach(b=>b.onclick=()=>switchAdminTab(b.dataset.adminTab));
 $("newTournamentSize").onchange=previewSize;previewSize();
+if($("liveTournamentSelect")){
+ $("liveTournamentSelect").onchange=populateLiveGroups;$("liveGroupSelect").onchange=populateLivePlayers;
+ $("liveHomeImage").onchange=async e=>{try{pendingHomeImage=await compressLiveImage(e.target.files?.[0]);blcAvatar("liveHomePreview",pendingHomeImage,$("liveHomePlayer").value);toast("เตรียมรูป HOME แล้ว")}catch{toast("รูป HOME ไม่ถูกต้อง")}};
+ $("liveAwayImage").onchange=async e=>{try{pendingAwayImage=await compressLiveImage(e.target.files?.[0]);blcAvatar("liveAwayPreview",pendingAwayImage,$("liveAwayPlayer").value);toast("เตรียมรูป AWAY แล้ว")}catch{toast("รูป AWAY ไม่ถูกต้อง")}};
+ $("removeHomeImageBtn").onclick=()=>{pendingHomeImage=null;blcAvatar("liveHomePreview",null,$("liveHomePlayer").value)};$("removeAwayImageBtn").onclick=()=>{pendingAwayImage=null;blcAvatar("liveAwayPreview",null,$("liveAwayPlayer").value)};
+ $("saveLiveMatchBtn").onclick=async()=>{if(!auth.currentUser)return toast("กรุณาเข้าสู่ระบบ ADMIN");const old=liveMatch||{},p={enabled:true,tournamentId:$("liveTournamentSelect").value,group:$("liveGroupSelect").value||"A",homeName:$("liveHomePlayer").value||"",awayName:$("liveAwayPlayer").value||"",homeClub:$("liveHomeClub").value.trim(),awayClub:$("liveAwayClub").value.trim(),homeScore:Math.max(0,Number($("liveHomeScore").value||0)),awayScore:Math.max(0,Number($("liveAwayScore").value||0)),homeImage:pendingHomeImage===undefined?(old.homeImage||""):pendingHomeImage,awayImage:pendingAwayImage===undefined?(old.awayImage||""):pendingAwayImage,updatedAt:Date.now()};if(p.homeName&&p.homeName===p.awayName)return toast("HOME / AWAY ต้องเป็นคนละคน");await set(ref(db,"public/liveMatch"),p);toast("LIVE MATCH อัปเดตแล้ว")};
+ $("stopLiveMatchBtn").onclick=async()=>{if(!auth.currentUser)return;await update(ref(db,"public/liveMatch"),{enabled:false,updatedAt:Date.now()});toast("หยุด LIVE MATCH แล้ว")};
+}
 
 $("createTournamentForm").onsubmit=async e=>{
   e.preventDefault();const name=$("newTournamentName").value.trim();const size=Number($("newTournamentSize").value);const status=$("newTournamentStatus").value;if(!name)return;
